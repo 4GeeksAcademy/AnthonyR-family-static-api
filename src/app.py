@@ -30,18 +30,61 @@ def sitemap():
 
 
 @app.route('/members', methods=['GET'])
-def handle_hello():
-    # This is how you can use the Family datastructure by calling its methods
+def get_all_members():
     members = jackson_family.get_all_members()
-    return jsonify(members), 200
+    if not members:
+        return jsonify({"msg": "No members found"}), 404
+    try:
+        return jsonify(members), 200
+    except Exception as e:
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+    
+
+@app.route('/member/<int:member_id>', methods=['GET'])
+def get_member(member_id):
+    
+    member = jackson_family.get_member(member_id)
+    if not member:
+        return jsonify({"msg": "Member not found"}), 404
+    try:
+        return jsonify({"member": member}), 200
+    except Exception as e:
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
 
-@app.route('/member', methods=['GET'])
-def get_member():
-    # This is how you can use the Family datastructure by calling its methods
-    members = jackson_family.get_all_members()
-    return jsonify(members), 200
+@app.route('/member', methods=['POST'])
+def add_new_member():
+    data = request.get_json()
+    if not data:
+        return jsonify({"msg": "No data provided"}), 400
+    
+    new_member = {
+        "first_name": data["first_name"],
+        "age": data["age"],
+        "lucky_numbers": data["lucky_numbers"]
+    }
 
+    try:
+        new_member_add = jackson_family.add_member(new_member)
+        return jsonify({"msg": "New member created",
+                        "member": new_member_add}), 201
+    except Exception as e:
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+
+@app.route('/member/<int:member_id>', methods=['DELETE'])
+def delete_member(member_id):
+    
+    member = jackson_family.get_member(member_id)
+    if not member:
+        return jsonify({"msg": "Member not found"}), 404
+
+    try:
+        member_delete = jackson_family.delete_member(member_id)
+        return jsonify({"msg": "Member deleted",
+                        "member": member}), 200
+    except Exception as e:
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
 
 # This only runs if `$ python src/app.py` is executed
