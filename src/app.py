@@ -40,23 +40,25 @@ def get_all_members():
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
     
 
-@app.route('/member/<int:member_id>', methods=['GET'])
-def get_member(member_id):
+@app.route('/members/<int:id>', methods=['GET'])
+def get_member(id):
     
-    member = jackson_family.get_member(member_id)
+    member = jackson_family.get_member(id)
     if not member:
         return jsonify({"msg": "Member not found"}), 404
     try:
-        return jsonify({"member": member}), 200
+        return jsonify(member), 200
     except Exception as e:
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
 
-@app.route('/member', methods=['POST'])
+@app.route('/members', methods=['POST'])
 def add_new_member():
     data = request.get_json()
     if not data:
         return jsonify({"msg": "No data provided"}), 400
+    if "first_name" not in data or "age" not in data or "lucky_numbers" not in data:
+        return jsonify({"msg": "Missing required data"}), 400
     
     new_member = {
         "first_name": data["first_name"],
@@ -66,23 +68,21 @@ def add_new_member():
 
     try:
         new_member_add = jackson_family.add_member(new_member)
-        return jsonify({"msg": "New member created",
-                        "member": new_member_add}), 201
+        return jsonify(new_member_add), 200
     except Exception as e:
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
 
-@app.route('/member/<int:member_id>', methods=['DELETE'])
-def delete_member(member_id):
+@app.route('/members/<int:id>', methods=['DELETE'])
+def delete_member(id):
     
-    member = jackson_family.get_member(member_id)
+    member = jackson_family.get_member(id)
     if not member:
         return jsonify({"msg": "Member not found"}), 404
 
     try:
-        member_delete = jackson_family.delete_member(member_id)
-        return jsonify({"msg": "Member deleted",
-                        "member": member}), 200
+        member_delete = jackson_family.delete_member(id)
+        return jsonify({"done": True}), 200
     except Exception as e:
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
